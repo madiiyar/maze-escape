@@ -24,7 +24,19 @@ public class DisjointSetTest {
         check(d.count() == 3, "3 sets: {0,1,2,3} {4} {5}");
         check(d.find(4) == 4 && d.find(5) == 5, "a single cell is its own root");
 
-        // TODO: add your own checks here
+        // my own checks
+        check(!d.union(2, 2), "union of a cell with itself returns false");
+        check(d.count() == 3, "count did not change after a useless union");
+        int n = 1_000_000;
+        DisjointSet chain = new DisjointSet(n);
+        for (int i = 0; i + 1 < n; i++) chain.union(i, i + 1);
+        check(chain.count() == 1, "chain of 1 000 000 cells is one set");
+        check(chain.connected(0, n - 1), "both ends of the chain are connected");
+        check(chain.find(n / 2) == chain.find(0), "find on a big chain does not overflow");
+        DisjointSet e = new DisjointSet(4);
+        e.union(0, 1); e.union(2, 3); e.union(0, 3);
+        check(e.count() == 1, "count is 1 after joining everything");
+        check(e.connected(1, 2), "1 and 2 connected through 0 and 3");
 
         System.out.println(failed == 0 ? "All checks passed." : failed + " checks failed.");
     }
