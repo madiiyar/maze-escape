@@ -19,8 +19,54 @@ public class Zones {
      * Is DAG in Main is 1 when the number of zones equals the number of cells (no cycle), so you do not need a separate check.
      */
     public static int[] kosaraju(Input.Slides s) {
-        // TODO
-        return new int[s.n()];
+        int n = s.n();
+        int[][] out = Graphs.slidesFrom(s);     // slides leaving each cell
+        int[][] in = Graphs.slidesInto(s);      // slides entering each cell = the reversed graph
+
+        // Pass 1: DFS on the slides. Write the cells in the order in which they are FINISHED.
+        boolean[] seen = new boolean[n];
+        int[] finished = new int[n];            // finished[0] is the first cell to finish
+        int count = 0;
+        int[] stack = new int[n];
+        int[] next = new int[n];                // next[u] = which slide of u we try next
+        for (int root = 0; root < n; root++) {
+            if (seen[root]) continue;
+            int top = 0;
+            stack[top++] = root;
+            seen[root] = true;
+            while (top > 0) {
+                int u = stack[top - 1];
+                if (next[u] < out[u].length) {
+                    int v = s.to()[out[u][next[u]++]];
+                    if (!seen[v]) { seen[v] = true; stack[top++] = v; }
+                } else {
+                    finished[count++] = u;       // all slides of u are done: u is finished
+                    top--;
+                }
+            }
+        }
+
+        // Pass 2: go through the cells from the LAST finished to the first. If a cell has no zone yet,
+        // DFS from it on the REVERSED slides; everything it reaches is one zone.
+        int[] zoneOf = new int[n];
+        java.util.Arrays.fill(zoneOf, -1);
+        int zones = 0;
+        for (int idx = n - 1; idx >= 0; idx--) {
+            int root = finished[idx];
+            if (zoneOf[root] != -1) continue;
+            int top = 0;
+            stack[top++] = root;
+            zoneOf[root] = zones;
+            while (top > 0) {
+                int u = stack[--top];
+                for (int i : in[u]) {
+                    int v = s.from()[i];         // the cell the slide comes from
+                    if (zoneOf[v] == -1) { zoneOf[v] = zones; stack[top++] = v; }
+                }
+            }
+            zones++;                              // the next zone found gets the next number
+        }
+        return zoneOf;
     }
 
     /**
