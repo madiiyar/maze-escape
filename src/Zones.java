@@ -76,7 +76,40 @@ public class Zones {
      * [1] the cost of the cheapest route from the zone of cell 0 to the zone of the last cell.
      */
     public static long[] routes(Input.Slides s, int[] zoneOf, int zoneCount) {
-        // TODO
-        return new long[]{0, 0};
+        int m = s.count();
+
+        // Group the slides by the zone they start in (counting sort), so we can go zone by zone.
+        int[] start = new int[zoneCount + 1];
+        for (int i = 0; i < m; i++) start[zoneOf[s.from()[i]] + 1]++;
+        for (int z = 0; z < zoneCount; z++) start[z + 1] += start[z];
+        int[] fill = java.util.Arrays.copyOf(start, zoneCount);
+        int[] byZone = new int[m];
+        for (int i = 0; i < m; i++) byZone[fill[zoneOf[s.from()[i]]]++] = i;
+
+        final long INF = Long.MAX_VALUE;
+        long[] chain = new long[zoneCount];      // chain[z] = zones on the longest chain that ends in z
+        long[] dist = new long[zoneCount];       // dist[z] = cheapest cost from the zone of the start to z
+        java.util.Arrays.fill(chain, 1);
+        java.util.Arrays.fill(dist, INF);
+        int startZone = zoneOf[0], exitZone = zoneOf[s.n() - 1];
+        dist[startZone] = 0;
+
+        // Zone numbers are a topological order: every slide between zones goes from a smaller number to a larger one.
+        // So when we reach zone z, nothing can improve it any more: all its incoming edges were already used.
+        for (int z = 0; z < zoneCount; z++) {
+            for (int j = start[z]; j < start[z + 1]; j++) {
+                int i = byZone[j];
+                int to = zoneOf[s.to()[i]];
+                if (to == z) continue;                          // a slide inside a zone: walking there is free
+                chain[to] = Math.max(chain[to], chain[z] + 1);   // longest chain
+                if (dist[z] != INF) {                           // cheapest route (only from zones we can reach)
+                    dist[to] = Math.min(dist[to], dist[z] + s.time()[i]);
+                }
+            }
+        }
+
+        long stages = 0;
+        for (long c : chain) stages = Math.max(stages, c);
+        return new long[]{stages, dist[exitZone]};
     }
 }
