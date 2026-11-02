@@ -109,10 +109,3 @@ n is the number of cells, m the number of walls (or slides).
 | Kosaraju | O(n + S) | O(n + S) | two DFS passes, lists of slides and of reversed slides |
 | Route in the zone graph | O(n + S) | O(n + S) | zones in topological order, every slide looked at once, no priority queue |
 
-## Before you submit
-
-- data/walls.txt, data/slides.txt and output/maze.png are in the repository.
-- `java tools/Check.java` shows all examples right.
-- This README is filled in, the program output and the section AI use included.
-- The work is pushed to main (at least one commit per mission) and the repository is public.
-- The link is attached in Moodle.
